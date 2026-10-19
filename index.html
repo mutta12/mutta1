@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>むった食堂 テーブルオーダー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 起動画面 -->
+  <section class="screen welcome wood-dark" id="welcome">
+    <div class="welcome-frame">
+      <p class="welcome-sub" data-i18n="welcome"></p>
+      <h1 class="welcome-name" id="welcomeName"></h1>
+      <p class="welcome-roman" data-i18n="storeSub"></p>
+      <p class="welcome-table" id="welcomeTable"></p>
+    </div>
+    <p class="welcome-tap" data-i18n="tapToStart"></p>
+    <div class="lang-row" id="welcomeLangs"></div>
+  </section>
+
+  <!-- 年齢・性別の入力 -->
+  <section class="screen profile wood-dark" id="profile" hidden>
+    <form class="profile-card washi" id="profileForm" novalidate>
+      <h2 data-i18n-html="profileTitle"></h2>
+      <label class="field-label" for="ageInput" data-i18n="age"></label>
+      <div class="age-row">
+        <input id="ageInput" type="text" inputmode="numeric" autocomplete="off" maxlength="10" data-i18n-placeholder="agePlaceholder">
+        <span data-i18n="ageUnit"></span>
+      </div>
+      <p class="field-error" id="ageError" role="alert"></p>
+      <p class="field-label" data-i18n="gender"></p>
+      <div class="gender-row" id="genderRow">
+        <button type="button" class="choice" data-gender="male" data-i18n-term="男性"></button>
+        <button type="button" class="choice" data-gender="female" data-i18n-term="女性"></button>
+        <button type="button" class="choice" data-gender="none" data-i18n-term="回答しない"></button>
+      </div>
+      <p class="field-label" data-i18n="allergy"></p>
+      <p class="field-hint" data-i18n="allergyHint"></p>
+      <div class="allergy-row" id="profileAllergies"></div>
+      <p class="allergy-note" data-i18n="allergyNote"></p>
+      <div class="profile-actions">
+        <button type="button" class="btn-ghost" id="btnSkip" data-i18n="skip"></button>
+        <button type="submit" class="btn-gold" data-i18n="seeRecommend"></button>
+      </div>
+    </form>
+  </section>
+
+  <header class="header wood-dark">
+    <div class="store">
+      <span class="store-name" id="storeName"></span>
+      <span class="table-no" id="tableNo"></span>
+      <span class="guest-info" id="guestInfo"></span>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" id="btnLang"></button>
+      <button class="hbtn" id="btnAllergy" data-i18n="allergy"></button>
+      <button class="hbtn" id="btnCall" data-i18n="call"></button>
+      <button class="hbtn" id="btnHistory" data-i18n="history"></button>
+      <button class="hbtn hbtn-gold" id="btnCheckout" data-i18n="checkout"></button>
+      <button class="hbtn hbtn-small" id="btnRecords" data-i18n="records"></button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="categories wood-dark" id="categories"></nav>
+
+    <main class="menu wood-light">
+      <div class="menu-head">
+        <h2 class="menu-title" id="menuTitle"></h2>
+        <p class="menu-sub" id="menuSub"></p>
+        <button class="btn-ghost btn-small" id="btnChangeProfile" data-i18n="changeProfile" hidden></button>
+      </div>
+      <p class="menu-note" id="menuNote" hidden></p>
+      <div class="grid" id="grid"></div>
+    </main>
+
+    <aside class="cart washi">
+      <h2 class="cart-title" data-i18n="cartTitle"></h2>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-footer">
+        <div class="cart-total">
+          <span><span data-i18n="total"></span> <small id="cartCount"></small></span>
+          <strong id="cartTotal">¥0</strong>
+        </div>
+        <button class="btn-gold btn-order" id="btnOrder" data-i18n="order" disabled></button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- 商品詳細 -->
+  <div class="overlay" id="itemModal" hidden>
+    <div class="modal modal-item washi">
+      <button class="modal-close" data-close aria-label="close">✕</button>
+      <div class="item-hero lacquer"><span class="plate plate-lg" id="itemEmoji"></span></div>
+      <div class="item-body">
+        <h3 id="itemName"></h3>
+        <p class="item-price" id="itemPrice"></p>
+        <p class="item-time" id="itemTime"></p>
+        <p class="item-desc" id="itemDesc"></p>
+        <p class="item-allergy" id="itemAllergy"></p>
+        <div id="itemOptions"></div>
+        <p class="field-error" id="itemNotice"></p>
+        <div class="item-bottom">
+          <div class="qty">
+            <button id="qtyMinus">−</button>
+            <span id="qtyValue">1</span>
+            <button id="qtyPlus">＋</button>
+          </div>
+          <button class="btn-gold" id="btnAdd"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 注文確認 -->
+  <div class="overlay" id="confirmModal" hidden>
+    <div class="modal modal-small washi">
+      <h3 data-i18n="confirmTitle"></h3>
+      <ul class="list" id="confirmList"></ul>
+      <div class="sum"><span data-i18n="total"></span> <strong id="confirmTotal"></strong></div>
+      <p class="estimate-box" id="confirmEstimate"></p>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close data-i18n="back"></button>
+        <button class="btn-gold" id="btnConfirm" data-i18n="confirmOrder"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 注文履歴・取消 -->
+  <div class="overlay" id="historyModal" hidden>
+    <div class="modal modal-small washi">
+      <h3 data-i18n="historyTitle"></h3>
+      <p class="modal-note" data-i18n="historyNote"></p>
+      <ul class="list" id="historyList"></ul>
+      <div class="sum"><span data-i18n="historyTotal"></span> <strong id="historyTotal"></strong></div>
+      <div class="modal-actions">
+        <button class="btn-gold" data-close data-i18n="close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- お会計 -->
+  <div class="overlay" id="checkoutModal" hidden>
+    <div class="modal modal-small washi" id="checkoutBody"></div>
+  </div>
+
+  <!-- アレルギーの指定 -->
+  <div class="overlay" id="allergyModal" hidden>
+    <div class="modal modal-small washi">
+      <h3 data-i18n="allergyTitle"></h3>
+      <p class="modal-note" data-i18n="allergyHint"></p>
+      <div class="allergy-row" id="modalAllergies"></div>
+      <p class="allergy-note" data-i18n="allergyNote"></p>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close data-i18n="back"></button>
+        <button class="btn-gold" id="btnAllergyApply" data-i18n="allergyApply"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 言語の選択 -->
+  <div class="overlay" id="langModal" hidden>
+    <div class="modal modal-small washi">
+      <h3 data-i18n="langTitle"></h3>
+      <div class="lang-list" id="langList"></div>
+    </div>
+  </div>
+
+  <!-- 注文記録（店舗用・日本語のみ） -->
+  <div class="overlay" id="recordsModal" hidden>
+    <div class="modal modal-wide washi">
+      <h3>注文記録</h3>
+      <p class="modal-note" id="recordsSummary"></p>
+      <div class="table-wrap">
+        <table class="records">
+          <thead>
+            <tr><th>日時</th><th>卓</th><th>年齢</th><th>性別</th><th>言語</th><th>アレルギー</th><th>商品</th><th>数量</th><th>金額</th><th>状態</th></tr>
+          </thead>
+          <tbody id="recordsBody"></tbody>
+        </table>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close>閉じる</button>
+        <button class="btn-gold" id="btnCsv">CSVで書き出す</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="menu.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
